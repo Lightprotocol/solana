@@ -116,6 +116,8 @@ pub struct ComputeBudget {
     /// Maximum accounts data size, in bytes, that a transaction is allowed to load; The
     /// value is capped by MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES to prevent overuse of memory.
     pub loaded_accounts_data_size_limit: usize,
+    /// Number of compute units consumed to calculate a Poseidon hash
+    pub poseidon_cost: u64,
 }
 
 impl Default for ComputeBudget {
@@ -165,6 +167,7 @@ impl ComputeBudget {
             alt_bn128_pairing_one_pair_cost_other: 12_121,
             big_modular_exponentiation_cost: 33,
             loaded_accounts_data_size_limit: MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES,
+            poseidon_cost: 1_137,
         }
     }
 

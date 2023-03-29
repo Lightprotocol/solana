@@ -2823,6 +2823,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "light-poseidon"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c38ef27d722d01489d5bad3ffaedc54e3d68b6447728ed3c9c7493c97cd46b54"
+dependencies = [
+ "ark-bn254 0.4.0",
+ "ark-ff 0.4.2",
+ "thiserror",
+]
+
+[[package]]
 name = "linked-hash-map"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6306,6 +6317,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "libsecp256k1",
+ "light-poseidon",
  "log",
  "memoffset 0.8.0",
  "num-bigint 0.4.3",

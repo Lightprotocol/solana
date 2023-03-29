@@ -48,7 +48,7 @@ pub use solana_program::{
     custom_panic_default, debug_account_data, declare_deprecated_sysvar_id, declare_sysvar_id,
     decode_error, ed25519_program, epoch_schedule, fee_calculator, impl_sysvar_get, incinerator,
     instruction, keccak, lamports, loader_instruction, loader_upgradeable_instruction, loader_v3,
-    loader_v3_instruction, message, msg, native_token, nonce, program, program_error,
+    loader_v3_instruction, message, msg, native_token, nonce, poseidon, program, program_error,
     program_memory, program_option, program_pack, rent, sanitize, sdk_ids, secp256k1_program,
     secp256k1_recover, serde_varint, serialize_utils, short_vec, slot_hashes, slot_history,
     stable_layout, stake, stake_history, syscalls, system_instruction, system_program, sysvar,
