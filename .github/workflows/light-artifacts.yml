@@ -1,0 +1,41 @@
+name: light-artifacts
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  light-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust
+        shell: bash
+        run: |
+          source ci/rust-version.sh stable
+          rustup default $rust_stable
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y \
+            libssl-dev \
+            libudev-dev \
+            pkg-config \
+            zlib1g-dev \
+            llvm \
+            clang \
+            cmake \
+            make \
+            libprotobuf-dev \
+            protobuf-compiler
+
+      - name: Build Solana binaries
+        run: |
+          ./scripts/cargo-install-all.sh /opt/solana
