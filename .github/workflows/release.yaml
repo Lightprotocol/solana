@@ -1,0 +1,292 @@
+name: Publish a release
+
+# TODO(vadorovsky): Do it only on tags.
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+env:
+  CROSS_VERSION: 0.2.5
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Install cross
+        uses: supplypike/setup-bin@v3
+        with:
+          uri: "https://github.com/cross-rs/cross/releases/download/v${{ env.CROSS_VERSION }}/cross-x86_64-unknown-linux-musl.tar.gz"
+          name: "cross"
+          version: "${{ env.CROSS_VERSION }}"
+
+      - name: Build (amd64)
+        run: |
+          cross build --release --target x86_64-unknown-linux-gnu
+
+      - name: Build (arm64)
+        run: |
+          cross build --release --target aarch64-unknown-linux-gnu
+
+      - name: Build (Linux amd64)
+        run: |
+          cross build --release --target x86_64-unknown-linux-gnu
+          cp target/x86_64-unknown-linux-gnu/release/cargo-build-bpf \
+            cargo-build-bpf-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/cargo-build-sbf \
+            cargo-build-sbf-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/cargo-test-bpf \
+            cargo-test-bpf-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/cargo-test-sbf \
+            cargo-test-sbf-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/gen-headers \
+            gen-headers-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/gen-syscall-list \
+            gen-syscall-list-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/libsolana_program.so \
+            libsolana_program-linux-amd64.so
+          cp target/x86_64-unknown-linux-gnu/release/libsolana_sdk.so \
+            libsolana_sdk-linux-amd64.so
+          cp target/x86_64-unknown-linux-gnu/release/libsolana_zk_token_sdk.so \
+            libsolana_zk_token_sdk-linux-amd64.so
+          cp target/x86_64-unknown-linux-gnu/release/proto \
+            proto-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/rbpf-cli \
+            rbpf-cli-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana \
+            solana-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-accounts-bench \
+            solana-accounts-bench-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-accounts-cluster-bench \
+            solana-accounts-cluster-bench-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-banking-bench \
+            solana-banking-bench-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-bench-streamer \
+            solana-bench-streamer-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-bench-tps \
+            solana-bench-tps-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-dos \
+            solana-dos-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-faucet \
+            solana-faucet-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-genesis \
+            solana-genesis-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-gossip \
+            solana-gossip-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-install \
+            solana-install-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-instal-init \
+            solana-instal-init-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-ip-address \
+            solana-ip-address-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-ip-address-server \
+            solana-ip-address-server-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-keygen \
+            solana-keygen-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-ledger-tool \
+            solana-ledger-tool-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-log-analyzer \
+            solana-log-analyzer-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-merkle-root-bench \
+            solana-merkle-root-bench-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-net-shaper \
+            solana-net-shaper-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-poh-bench \
+            solana-poh-bench-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-stake-accounts \
+            solana-stake-accounts-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-sys-tuner \
+            solana-sys-tuner-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-test-validator \
+            solana-test-validator-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-tokens \
+            solana-tokens-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-transaction-dos \
+            solana-transaction-dos-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-upload-perf \
+            solana-upload-perf-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-validator \
+            solana-validator-linux-amd64
+          cp target/x86_64-unknown-linux-gnu/release/solana-watchtower \
+            solana-watchtower-linux-amd64
+
+      - name: Build (Linux arm64)
+        run: |
+          cross build --release --target aarch64-unknown-linux-musl
+          cp target/aarch64-unknown-linux-gnu/release/cargo-build-bpf \
+            cargo-build-bpf-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/cargo-build-sbf \
+            cargo-build-sbf-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/cargo-test-bpf \
+            cargo-test-bpf-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/cargo-test-sbf \
+            cargo-test-sbf-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/gen-headers \
+            gen-headers-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/gen-syscall-list \
+            gen-syscall-list-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/libsolana_program.so \
+            libsolana_program-linux-arm64.so
+          cp target/aarch64-unknown-linux-gnu/release/libsolana_sdk.so \
+            libsolana_sdk-linux-arm64.so
+          cp target/aarch64-unknown-linux-gnu/release/libsolana_zk_token_sdk.so \
+            libsolana_zk_token_sdk-linux-arm64.so
+          cp target/aarch64-unknown-linux-gnu/release/proto \
+            proto-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/rbpf-cli \
+            rbpf-cli-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana \
+            solana-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-accounts-bench \
+            solana-accounts-bench-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-accounts-cluster-bench \
+            solana-accounts-cluster-bench-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-banking-bench \
+            solana-banking-bench-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-bench-streamer \
+            solana-bench-streamer-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-bench-tps \
+            solana-bench-tps-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-dos \
+            solana-dos-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-faucet \
+            solana-faucet-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-genesis \
+            solana-genesis-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-gossip \
+            solana-gossip-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-install \
+            solana-install-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-instal-init \
+            solana-instal-init-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-ip-address \
+            solana-ip-address-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-ip-address-server \
+            solana-ip-address-server-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-keygen \
+            solana-keygen-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-ledger-tool \
+            solana-ledger-tool-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-log-analyzer \
+            solana-log-analyzer-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-merkle-root-bench \
+            solana-merkle-root-bench-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-net-shaper \
+            solana-net-shaper-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-poh-bench \
+            solana-poh-bench-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-stake-accounts \
+            solana-stake-accounts-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-sys-tuner \
+            solana-sys-tuner-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-test-validator \
+            solana-test-validator-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-tokens \
+            solana-tokens-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-transaction-dos \
+            solana-transaction-dos-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-upload-perf \
+            solana-upload-perf-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-validator \
+            solana-validator-linux-arm64
+          cp target/aarch64-unknown-linux-gnu/release/solana-watchtower \
+            solana-watchtower-linux-arm64
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          files: |
+            cargo-build-bpf-linux-amd64
+            cargo-build-sbf-linux-amd64
+            cargo-test-bpf-linux-amd64
+            cargo-test-sbf-linux-amd64
+            gen-headers-linux-amd64
+            gen-syscall-list-linux-amd64
+            libsolana_program-linux-amd64.so
+            libsolana_sdk-linux-amd64.so
+            libsolana_zk_token_sdk-linux-amd64.so
+            proto-linux-amd64
+            rbpf-cli-linux-amd64
+            solana-linux-amd64
+            solana-accounts-bench-linux-amd64
+            solana-accounts-cluster-bench-linux-amd64
+            solana-banking-bench-linux-amd64
+            solana-bench-streamer-linux-amd64
+            solana-bench-tps-linux-amd64
+            solana-dos-linux-amd64
+            solana-faucet-linux-amd64
+            solana-genesis-linux-amd64
+            solana-gossip-linux-amd64
+            solana-install-linux-amd64
+            solana-instal-init-linux-amd64
+            solana-ip-address-linux-amd64
+            solana-ip-address-server-linux-amd64
+            solana-keygen-linux-amd64
+            solana-ledger-tool-linux-amd64
+            solana-log-analyzer-linux-amd64
+            solana-merkle-root-bench-linux-amd64
+            solana-net-shaper-linux-amd64
+            solana-poh-bench-linux-amd64
+            solana-stake-accounts-linux-amd64
+            solana-sys-tuner-linux-amd64
+            solana-test-validator-linux-amd64
+            solana-tokens-linux-amd64
+            solana-transaction-dos-linux-amd64
+            solana-upload-perf-linux-amd64
+            solana-validator-linux-amd64
+            solana-watchtower-linux-amd64
+            cargo-build-bpf-linux-arm64
+            cargo-build-sbf-linux-arm64
+            cargo-test-bpf-linux-arm64
+            cargo-test-sbf-linux-arm64
+            gen-headers-linux-arm64
+            gen-syscall-list-linux-arm64
+            libsolana_program-linux-arm64.so
+            libsolana_sdk-linux-arm64.so
+            libsolana_zk_token_sdk-linux-arm64.so
+            proto-linux-arm64
+            rbpf-cli-linux-arm64
+            solana-linux-arm64
+            solana-accounts-bench-linux-arm64
+            solana-accounts-cluster-bench-linux-arm64
+            solana-banking-bench-linux-arm64
+            solana-bench-streamer-linux-arm64
+            solana-bench-tps-linux-arm64
+            solana-dos-linux-arm64
+            solana-faucet-linux-arm64
+            solana-genesis-linux-arm64
+            solana-gossip-linux-arm64
+            solana-install-linux-arm64
+            solana-instal-init-linux-arm64
+            solana-ip-address-linux-arm64
+            solana-ip-address-server-linux-arm64
+            solana-keygen-linux-arm64
+            solana-ledger-tool-linux-arm64
+            solana-log-analyzer-linux-arm64
+            solana-merkle-root-bench-linux-arm64
+            solana-net-shaper-linux-arm64
+            solana-poh-bench-linux-arm64
+            solana-stake-accounts-linux-arm64
+            solana-sys-tuner-linux-arm64
+            solana-test-validator-linux-arm64
+            solana-tokens-linux-arm64
+            solana-transaction-dos-linux-arm64
+            solana-upload-perf-linux-arm64
+            solana-validator-linux-arm64
+            solana-watchtower-linux-arm64
