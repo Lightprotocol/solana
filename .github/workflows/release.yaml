@@ -1,0 +1,50 @@
+name: Publish a release
+
+# TODO(vadorovsky): Do it only on tags.
+on:
+  pull_request:
+    branches:
+      - master
+      - v1.15
+  push:
+    branches:
+      - master
+      - v1.15
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+env:
+  CROSS_VERSION: 0.2.5
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v1
+
+      # - name: Install cross
+      #   run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Install cross
+        uses: supplypike/setup-bin@v3
+        with:
+          uri: "https://github.com/cross-rs/cross/releases/download/v${{ env.CROSS_VERSION }}/cross-x86_64-unknown-linux-musl.tar.gz"
+          name: "cross"
+          version: "${{ env.CROSS_VERSION }}"
+
+      - name: Build (amd64)
+        run: |
+          cross build --release --target x86_64-unknown-linux-gnu
+
+      - name: Build (arm64)
+        run: |
+          cross build --release --target aarch64-unknown-linux-gnu
