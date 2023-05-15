@@ -1,0 +1,143 @@
+name: Publish a release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+env:
+  CROSS_VERSION: 0.2.5
+
+jobs:
+  release:
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+            cross: true
+            target: x86_64-unknown-linux-gnu
+            suffix: linux-amd64
+          - os: ubuntu-latest
+            cross: true
+            target: aarch64-unknown-linux-gnu
+            suffix: linux-arm64
+          - os: macos-latest
+            cross: false
+            target: x86_64-apple-darwin
+            suffix: macos-amd64
+          # TODO(vadorovsky): Use https://github.com/tpoechtrager/osxcross to
+          # build for Apple Silicon.
+          # - os: macos-latest
+          #   cross: false
+          #   target: aarch64-apple-darwin
+          #   suffix: macos-arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.66.1
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Install cross
+        uses: supplypike/setup-bin@v3
+        with:
+          uri: "https://github.com/cross-rs/cross/releases/download/v${{ env.CROSS_VERSION }}/cross-x86_64-unknown-linux-musl.tar.gz"
+          name: "cross"
+          version: "${{ env.CROSS_VERSION }}"
+
+      - name: Build
+        if: matrix.config.cross == true
+        run: |
+          cross build --release --target ${{ matrix.config.target }}
+
+      - name: Build
+        if: matrix.config.cross == false
+        run: |
+          rustup target add ${{ matrix.config.target }}
+          cargo build --release --target ${{ matrix.config.target }}
+
+      - name: Archive binaries
+        run: |
+          pushd target/${{ matrix.config.target }}/release
+          tar -cJf \
+            ../../../solana-${{ matrix.config.suffix }}.tar.xz \
+            cargo-build-bpf \
+            cargo-build-sbf \
+            cargo-test-bpf \
+            cargo-test-sbf \
+            gen-headers \
+            gen-syscall-list \
+            libsolana_program.so \
+            libsolana_program.rlib \
+            libsolana_sdk.so \
+            libsolana_sdk.rlib \
+            libsolana_zk_token_sdk.so \
+            libsolana_zk_token_sdk.rlib \
+            proto \
+            rbpf-cli \
+            solana \
+            solana-accounts-bench \
+            solana-accounts-cluster-bench \
+            solana-banking-bench \
+            solana-bench-streamer \
+            solana-bench-tps \
+            solana-dos \
+            solana-faucet \
+            solana-genesis \
+            solana-gossip \
+            solana-install \
+            solana-install-init \
+            solana-ip-address \
+            solana-ip-address-server \
+            solana-keygen \
+            solana-ledger-tool \
+            solana-log-analyzer \
+            solana-merkle-root-bench \
+            solana-net-shaper \
+            solana-poh-bench \
+            solana-stake-accounts \
+            solana-sys-tuner \
+            solana-test-validator \
+            solana-tokens \
+            solana-transaction-dos \
+            solana-upload-perf \
+            solana-validator \
+            solana-watchtower
+          popd
+
+      - name: Archive Solana library deps
+        run: |
+          pushd target/${{ matrix.config.target }}/release
+          tar -cJf \
+            ../../../solana-deps-${{ matrix.config.suffix }}.tar.xz \
+            libsolana_program.so \
+            libsolana_program.rlib \
+            libsolana_sdk.so \
+            libsolana_sdk.rlib \
+            libsolana_zk_token_sdk.so \
+            libsolana_zk_token_sdk.rlib
+          popd
+
+      - name: Archive SBF SDK
+        run: |
+          tar -cJf \
+            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.xz \
+            sdk/sbf
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          files: |
+            solana-${{ matrix.config.suffix }}.tar.xz
+            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.xz
+            solana-deps-${{ matrix.config.suffix }}.tar.xz
