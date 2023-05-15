@@ -1,0 +1,5 @@
+[target.x86_64-unknown-linux-gnu]
+image = "ghcr.io/lightprotocol/solana-cross-x86_64-unknown-linux-gnu:1.15"
+
+[target.aarch64-unknown-linux-gnu]
+image = "ghcr.io/lightprotocol/solana-cross-aarch64-unknown-linux-gnu:1.15"

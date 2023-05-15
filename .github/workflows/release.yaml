@@ -1,0 +1,149 @@
+name: Publish a release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+env:
+  CROSS_VERSION: 0.2.5
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { target: "x86_64-unknown-linux-gnu", suffix: "linux-amd64" }
+          - { target: "aarch64-unknown-linux-gnu", suffix: "linux-arm64" }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Install cross
+        uses: supplypike/setup-bin@v3
+        with:
+          uri: "https://github.com/cross-rs/cross/releases/download/v${{ env.CROSS_VERSION }}/cross-x86_64-unknown-linux-musl.tar.gz"
+          name: "cross"
+          version: "${{ env.CROSS_VERSION }}"
+
+      - name: Build
+        run: |
+          FILES=(cargo-build-bpf
+                 cargo-build-sbf
+                 cargo-test-bpf
+                 cargo-test-sbf
+                 gen-headers gen-syscall-list
+                 libsolana_program.so
+                 libsolana_program.rlib
+                 libsolana_sdk.so
+                 libsolana_sdk.rlib
+                 libsolana_zk_token_sdk.so
+                 libsolana_zk_token_sdk.rlib
+                 proto
+                 rbpf-cli
+                 solana
+                 solana-accounts-bench
+                 solana-accounts-cluster-bench
+                 solana-banking-bench
+                 solana-bench-streamer
+                 solana-bench-tps
+                 solana-dos solana-faucet
+                 solana-genesis
+                 solana-gossip
+                 solana-install
+                 solana-install-init
+                 solana-ip-address
+                 solana-ip-address-server
+                 solana-keygen
+                 solana-ledger-tool
+                 solana-log-analyzer
+                 solana-merkle-root-bench
+                 solana-net-shaper
+                 solana-poh-bench
+                 solana-stake-accounts
+                 solana-sys-tuner
+                 solana-test-validator
+                 solana-tokens
+                 solana-transaction-dos
+                 solana-upload-perf
+                 solana-validator
+                 solana-watchtower)
+
+          cross build --release --target ${{ matrix.config.target }}
+
+          for file in ${FILES[@]}; do
+            cp target/${{ matrix.config.target }}/release/$file $file-${{ matrix.config.suffix }}
+          done
+
+      - name: Archive libsolana_program
+        run: |
+          pushd target/${{ matrix.config.target }}
+          tar -I zstd -cf ../../solana-deps-${{ matrix.config.suffix }}.tar.zst \
+            release/libsolana_program.so \
+            release/libsolana_program.rlib \
+            release/libsolana_sdk.so \
+            release/libsolana_sdk.rlib \
+            release/libsolana_zk_token_sdk.so \
+            release/libsolana_zk_token_sdk.rlib
+          popd
+
+      - name: Archive SBF SDK
+        run: |
+          tar -I zstd -cf solana-sdk-sbf-${{ matrix.config.suffix }}.tar.zst sdk/sbf
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          files: |
+            cargo-build-bpf-${{ matrix.config.suffix }}
+            cargo-build-sbf-${{ matrix.config.suffix }}
+            cargo-test-bpf-${{ matrix.config.suffix }}
+            cargo-test-sbf-${{ matrix.config.suffix }}
+            gen-headers-${{ matrix.config.suffix }}
+            gen-syscall-list-${{ matrix.config.suffix }}
+            proto-${{ matrix.config.suffix }}
+            rbpf-cli-${{ matrix.config.suffix }}
+            solana-${{ matrix.config.suffix }}
+            solana-accounts-bench-${{ matrix.config.suffix }}
+            solana-accounts-cluster-bench-${{ matrix.config.suffix }}
+            solana-banking-bench-${{ matrix.config.suffix }}
+            solana-bench-streamer-${{ matrix.config.suffix }}
+            solana-bench-tps-${{ matrix.config.suffix }}
+            solana-dos-${{ matrix.config.suffix }}
+            solana-faucet-${{ matrix.config.suffix }}
+            solana-genesis-${{ matrix.config.suffix }}
+            solana-gossip-${{ matrix.config.suffix }}
+            solana-install-${{ matrix.config.suffix }}
+            solana-install-init-${{ matrix.config.suffix }}
+            solana-ip-address-${{ matrix.config.suffix }}
+            solana-ip-address-server-${{ matrix.config.suffix }}
+            solana-keygen-${{ matrix.config.suffix }}
+            solana-ledger-tool-${{ matrix.config.suffix }}
+            solana-log-analyzer-${{ matrix.config.suffix }}
+            solana-merkle-root-bench-${{ matrix.config.suffix }}
+            solana-net-shaper-${{ matrix.config.suffix }}
+            solana-poh-bench-${{ matrix.config.suffix }}
+            solana-stake-accounts-${{ matrix.config.suffix }}
+            solana-sys-tuner-${{ matrix.config.suffix }}
+            solana-test-validator-${{ matrix.config.suffix }}
+            solana-tokens-${{ matrix.config.suffix }}
+            solana-transaction-dos-${{ matrix.config.suffix }}
+            solana-upload-perf-${{ matrix.config.suffix }}
+            solana-validator-${{ matrix.config.suffix }}
+            solana-watchtower-${{ matrix.config.suffix }}
+            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.zst
+            solana-deps-${{ matrix.config.suffix }}.tar.zst
