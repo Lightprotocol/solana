@@ -70,20 +70,14 @@ jobs:
       - name: Archive binaries
         run: |
           pushd target/${{ matrix.config.target }}/release
-          tar -cJf \
-            ../../../solana-${{ matrix.config.suffix }}.tar.xz \
+          tar -czf \
+            ../../../solana-${{ matrix.config.suffix }}.tar.gz \
             cargo-build-bpf \
             cargo-build-sbf \
             cargo-test-bpf \
             cargo-test-sbf \
             gen-headers \
             gen-syscall-list \
-            libsolana_program.so \
-            libsolana_program.rlib \
-            libsolana_sdk.so \
-            libsolana_sdk.rlib \
-            libsolana_zk_token_sdk.so \
-            libsolana_zk_token_sdk.rlib \
             proto \
             rbpf-cli \
             solana \
@@ -119,8 +113,8 @@ jobs:
       - name: Archive Solana library deps
         run: |
           pushd target/${{ matrix.config.target }}/release
-          tar -cJf \
-            ../../../solana-deps-${{ matrix.config.suffix }}.tar.xz \
+          tar -czf \
+            ../../../solana-deps-${{ matrix.config.suffix }}.tar.gz \
             libsolana_program.${{ matrix.config.dylib-ext }} \
             libsolana_program.rlib \
             libsolana_sdk.${{ matrix.config.dylib-ext }} \
@@ -131,8 +125,8 @@ jobs:
 
       - name: Archive SBF SDK
         run: |
-          tar -cJf \
-            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.xz \
+          tar -czf \
+            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.gz \
             sdk/sbf
 
       - name: Release
@@ -141,6 +135,6 @@ jobs:
         with:
           token: ${{ secrets.PAT_TOKEN }}
           files: |
-            solana-${{ matrix.config.suffix }}.tar.xz
-            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.xz
-            solana-deps-${{ matrix.config.suffix }}.tar.xz
+            solana-${{ matrix.config.suffix }}.tar.gz
+            solana-sdk-sbf-${{ matrix.config.suffix }}.tar.gz
+            solana-deps-${{ matrix.config.suffix }}.tar.gz
