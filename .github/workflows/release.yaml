@@ -20,14 +20,17 @@ jobs:
           - os: ubuntu-latest
             cross: true
             target: x86_64-unknown-linux-gnu
+            dylib-ext: so
             suffix: linux-amd64
           - os: ubuntu-latest
             cross: true
             target: aarch64-unknown-linux-gnu
+            dylib-ext: so
             suffix: linux-arm64
           - os: macos-latest
             cross: false
             target: x86_64-apple-darwin
+            dylib-ext: dylib
             suffix: macos-amd64
           # TODO(vadorovsky): Use https://github.com/tpoechtrager/osxcross to
           # build for Apple Silicon.
@@ -118,11 +121,11 @@ jobs:
           pushd target/${{ matrix.config.target }}/release
           tar -cJf \
             ../../../solana-deps-${{ matrix.config.suffix }}.tar.xz \
-            libsolana_program.so \
+            libsolana_program.${{ matrix.config.dylib-ext }} \
             libsolana_program.rlib \
-            libsolana_sdk.so \
+            libsolana_sdk.${{ matrix.config.dylib-ext }} \
             libsolana_sdk.rlib \
-            libsolana_zk_token_sdk.so \
+            libsolana_zk_token_sdk.${{ matrix.config.dylib-ext }} \
             libsolana_zk_token_sdk.rlib
           popd
 
